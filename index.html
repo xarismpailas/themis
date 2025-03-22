@@ -250,6 +250,7 @@
         .start-screen {
             background: radial-gradient(circle at center, rgba(209, 32, 32, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
             backdrop-filter: blur(5px);
+            z-index: 2000;
         }
 
         .overlay-content, .start-content {
@@ -480,13 +481,23 @@
         }
 
         .touch-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
+            position: relative;
+            bottom: auto;
+            right: auto;
+            width: 85%;
+            height: auto;
+            display: none !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             gap: 10px;
-            z-index: 100;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
         .touch-btn {
@@ -739,8 +750,7 @@
             const startScreen = document.getElementById('startScreen');
             const gameOverlay = document.getElementById('gameOverlay');
             
-            // Initially hide touch controls
-            touchControls.style.display = 'none';
+            // Set up touch controls
             touchControls.style.flexDirection = 'column';
             
             // Show controls when game starts
@@ -749,7 +759,7 @@
                 if (playerName !== '') {
                     // Wait for start screen to be hidden before showing controls
                     setTimeout(() => {
-                        touchControls.style.display = 'flex';
+                        touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
                     }, 100);
                 }
             });
@@ -760,7 +770,7 @@
                     if (mutation.target === gameOverlay && 
                         mutation.attributeName === 'style') {
                         if (gameOverlay.style.display === 'flex') {
-                            touchControls.style.display = 'none';
+                            touchControls.style.cssText = 'display: none !important;';
                         }
                     }
                 });
@@ -771,7 +781,7 @@
             // Show controls when clicking Play Again
             document.getElementById('playAgain').addEventListener('click', function() {
                 setTimeout(() => {
-                    touchControls.style.display = 'flex';
+                    touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
                 }, 100);
             });
         }
