@@ -252,6 +252,11 @@
             backdrop-filter: blur(5px);
             z-index: 9999;
             display: flex;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
         }
 
         .overlay-content, .start-content {
@@ -269,6 +274,8 @@
             box-shadow: 0 0 40px rgba(209, 32, 32, 0.6);
             border-radius: 20px;
             border: 3px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 10000;
         }
 
         .start-content h1 {
@@ -363,6 +370,11 @@
         }
 
         #playNow {
+            position: relative;
+            z-index: 10001;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
             font-size: 1.5em;
             padding: 20px 50px;
             text-transform: uppercase;
@@ -371,7 +383,6 @@
             color: #d12020;
             border: none;
             border-radius: 10px;
-            cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             margin-top: 30px;
@@ -409,7 +420,14 @@
         }
 
         #snakeHead, #snakeBody, #foodImg, #boostImg {
-            display: none;
+            display: block;
+            width: 20px;
+            height: 20px;
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            opacity: 1;
+            pointer-events: none;
         }
 
         .game-overlay {
@@ -559,6 +577,9 @@
                 touch-action: none;
                 margin: 0;
                 max-height: 60vh;
+                background-color: rgba(0, 0, 0, 0.5);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
             }
 
             .touch-controls {
@@ -596,12 +617,14 @@
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
                 box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+                opacity: 0.9;
             }
 
             .touch-btn:active {
                 background: rgba(255, 255, 255, 0.7);
                 transform: scale(0.95);
                 box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                opacity: 1;
             }
 
             .touch-controls-row {
@@ -622,11 +645,11 @@
 
             .start-content,
             .overlay-content {
-                width: 85%;
+                width: 90%;
                 max-width: 350px;
-                padding: 15px;
-                margin-top: 0;
-                transform: scale(0.9);
+                padding: 20px;
+                margin: 0;
+                transform: scale(1);
             }
 
             .score {
@@ -660,7 +683,10 @@
             }
 
             #playNow, #playAgain {
-                padding: 12px 25px !important;
+                width: 100%;
+                max-width: 250px;
+                margin: 20px auto;
+                padding: 15px 30px;
                 font-size: 1.2em !important;
             }
 
@@ -672,6 +698,11 @@
             .leaderboard-item {
                 padding: 6px 10px !important;
                 font-size: 0.9em !important;
+            }
+
+            #snakeHead, #snakeBody, #foodImg, #boostImg {
+                width: 15px;
+                height: 15px;
             }
         }
     </style>
@@ -744,106 +775,133 @@
     <img id="foodImg" src="Στιγμιότυπο οθόνης 2025-03-21 093812.png" alt="Food">
     <img id="boostImg" src="αρχείο λήψης.jpg" alt="Boost">
     <audio id="hymn" src="imnos_olimpiakou.mp3" loop></audio>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
+    <script src="game.js"></script>
     <script>
-        // Add touch controls detection
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            const touchControls = document.querySelector('.touch-controls');
-            const startScreen = document.getElementById('startScreen');
-            const gameOverlay = document.getElementById('gameOverlay');
-            
-            // Set up touch controls
-            touchControls.style.flexDirection = 'column';
-            
-            // Show controls when game starts
-            document.getElementById('playNow').addEventListener('click', function() {
-                const playerName = document.getElementById('playerName').value.trim();
-                if (playerName !== '') {
-                    // Wait for start screen to be hidden before showing controls
-                    setTimeout(() => {
-                        touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
-                    }, 100);
-                }
-            });
+        // Initialize game when document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load all images first
+            const images = {
+                snakeHead: document.getElementById('snakeHead'),
+                snakeBody: document.getElementById('snakeBody'),
+                foodImg: document.getElementById('foodImg'),
+                boostImg: document.getElementById('boostImg')
+            };
 
-            // Hide controls when game ends
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.target === gameOverlay && 
-                        mutation.attributeName === 'style') {
-                        if (gameOverlay.style.display === 'flex') {
-                            touchControls.style.cssText = 'display: none !important;';
+            // Function to check if all images are loaded
+            function areImagesLoaded() {
+                return Object.values(images).every(img => {
+                    const isLoaded = img.complete && img.naturalHeight !== 0;
+                    console.log(`Image ${img.id} loaded:`, isLoaded);
+                    return isLoaded;
+                });
+            }
+
+            // Function to force load images
+            function forceLoadImages() {
+                return new Promise((resolve) => {
+                    let loadedCount = 0;
+                    const totalImages = Object.keys(images).length;
+
+                    function onImageLoad() {
+                        loadedCount++;
+                        if (loadedCount === totalImages) {
+                            console.log('All images loaded successfully');
+                            resolve();
                         }
                     }
+
+                    Object.values(images).forEach(img => {
+                        if (img.complete) {
+                            onImageLoad();
+                        } else {
+                            img.onload = onImageLoad;
+                            img.src = img.src;
+                        }
+                    });
                 });
-            });
+            }
 
-            observer.observe(gameOverlay, { attributes: true });
+            // Function to start the game setup
+            async function setupGame() {
+                console.log('Setting up game...');
+                await forceLoadImages();
+                
+                // Make images available globally
+                window.gameImages = images;
 
-            // Show controls when clicking Play Again
-            document.getElementById('playAgain').addEventListener('click', function() {
-                setTimeout(() => {
-                    touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
-                }, 100);
-            });
-        }
-
-        // Update leaderboard display function
-        function updateLeaderboard(scores, targetElement) {
-            const leaderboardList = document.getElementById(targetElement);
-            leaderboardList.innerHTML = '';
-            
-            scores.forEach((score, index) => {
-                const li = document.createElement('li');
-                li.className = 'leaderboard-item';
-                li.innerHTML = `
-                    <span>#${index + 1} ${score.playerName}</span>
-                    <span>${score.score}</span>
-                `;
-                leaderboardList.appendChild(li);
-            });
-        }
-
-        // Initialize leaderboard
-        getTopScores((scores) => {
-            updateLeaderboard(scores, 'leaderboardList');
-            updateLeaderboard(scores, 'gameOverLeaderboard');
-        });
-
-        // Save score when game ends
-        const gameOverlay = document.getElementById('gameOverlay');
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.target === gameOverlay && 
-                    mutation.attributeName === 'style' &&
-                    gameOverlay.style.display === 'flex') {
-                    const finalScore = parseInt(document.getElementById('finalScore').textContent);
-                    const playerName = document.getElementById('playerName').value;
+                // Add touch controls detection
+                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                    const touchControls = document.querySelector('.touch-controls');
+                    const startScreen = document.getElementById('startScreen');
+                    const gameOverlay = document.getElementById('gameOverlay');
                     
-                    // Save score to Firebase
-                    saveScore(playerName, finalScore).then(() => {
-                        // Score saved successfully, update leaderboards
-                        getTopScores((scores) => {
-                            updateLeaderboard(scores, 'leaderboardList');
-                            updateLeaderboard(scores, 'gameOverLeaderboard');
+                    touchControls.style.flexDirection = 'column';
+                    
+                    document.getElementById('playNow').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const playerName = document.getElementById('playerName').value.trim();
+                        if (playerName !== '') {
+                            startScreen.style.display = 'none';
+                            setTimeout(() => {
+                                touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
+                                if (typeof startGame === 'function') {
+                                    console.log('Starting game...');
+                                    startGame();
+                                }
+                            }, 100);
+                        } else {
+                            document.getElementById('nameError').style.display = 'block';
+                        }
+                    });
+
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.target === gameOverlay && 
+                                mutation.attributeName === 'style') {
+                                if (gameOverlay.style.display === 'flex') {
+                                    touchControls.style.cssText = 'display: none !important;';
+                                }
+                            }
                         });
                     });
-                }
-            });
-        });
-        observer.observe(gameOverlay, { attributes: true });
 
-        // Update game over handling
-        document.getElementById('playAgain').addEventListener('click', function() {
-            // Game will restart - no need to save score again as it's already saved
-            getTopScores((scores) => {
-                updateLeaderboard(scores, 'leaderboardList');
-                updateLeaderboard(scores, 'gameOverLeaderboard');
+                    observer.observe(gameOverlay, { attributes: true });
+
+                    document.getElementById('playAgain').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        gameOverlay.style.display = 'none';
+                        setTimeout(() => {
+                            touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
+                            if (typeof restartGame === 'function') {
+                                console.log('Restarting game...');
+                                restartGame();
+                            }
+                        }, 100);
+                    });
+
+                    touchControls.style.cssText = 'display: none !important;';
+                }
+
+                // Initialize sound control
+                const soundControl = document.getElementById('soundControl');
+                const hymn = document.getElementById('hymn');
+                
+                soundControl.addEventListener('click', function() {
+                    this.classList.toggle('muted');
+                    if (this.classList.contains('muted')) {
+                        hymn.pause();
+                    } else {
+                        hymn.play();
+                    }
+                });
+            }
+
+            // Start setup process
+            console.log('Initializing game...');
+            setupGame().catch(error => {
+                console.error('Error during game setup:', error);
             });
         });
     </script>
-    <script src="game.js"></script>
 </body>
 </html> 
