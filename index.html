@@ -250,13 +250,6 @@
         .start-screen {
             background: radial-gradient(circle at center, rgba(209, 32, 32, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
             backdrop-filter: blur(5px);
-            z-index: 9999;
-            display: flex;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
         }
 
         .overlay-content, .start-content {
@@ -274,8 +267,6 @@
             box-shadow: 0 0 40px rgba(209, 32, 32, 0.6);
             border-radius: 20px;
             border: 3px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-            z-index: 10000;
         }
 
         .start-content h1 {
@@ -370,11 +361,6 @@
         }
 
         #playNow {
-            position: relative;
-            z-index: 10001;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
             font-size: 1.5em;
             padding: 20px 50px;
             text-transform: uppercase;
@@ -383,6 +369,7 @@
             color: #d12020;
             border: none;
             border-radius: 10px;
+            cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             margin-top: 30px;
@@ -420,14 +407,7 @@
         }
 
         #snakeHead, #snakeBody, #foodImg, #boostImg {
-            display: block;
-            width: 20px;
-            height: 20px;
-            position: fixed;
-            top: -1000px;
-            left: -1000px;
-            opacity: 1;
-            pointer-events: none;
+            display: none;
         }
 
         .game-overlay {
@@ -500,23 +480,13 @@
         }
 
         .touch-controls {
-            position: relative;
-            bottom: auto;
-            right: auto;
-            width: 85%;
-            height: auto;
-            display: none !important;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
             gap: 10px;
-            z-index: 1;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(5px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 100;
         }
 
         .touch-btn {
@@ -563,73 +533,70 @@
                 height: calc(100vh - 60px);
                 position: relative;
                 display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
+                flex-direction: row;
+                justify-content: space-between;
                 align-items: center;
-                padding: 10px;
-                gap: 15px;
+                padding: 5px;
+                gap: 10px;
             }
 
             #gameCanvas {
-                width: 85%;
+                width: 50%;
                 height: auto;
                 aspect-ratio: 1;
                 touch-action: none;
                 margin: 0;
-                max-height: 60vh;
-                background-color: rgba(0, 0, 0, 0.5);
-                border: 2px solid rgba(255, 255, 255, 0.3);
-                border-radius: 10px;
+                max-height: 90vh;
+                margin-left: 10px;
             }
 
             .touch-controls {
                 position: relative;
                 bottom: auto;
                 right: auto;
-                width: 85%;
-                height: auto;
-                display: none !important;
+                width: 45%;
+                height: 60vh;
+                display: none;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                gap: 10px;
-                z-index: 1;
-                background: rgba(0, 0, 0, 0.8);
+                gap: 20px;
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.7);
                 padding: 15px;
                 border-radius: 15px;
                 backdrop-filter: blur(5px);
-                border: 2px solid rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.2);
                 box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                margin-right: 10px;
             }
 
             .touch-btn {
-                width: 65px;
-                height: 65px;
-                background: rgba(255, 255, 255, 0.5);
-                border: 3px solid rgba(255, 255, 255, 0.8);
+                width: 50px;
+                height: 50px;
+                background: rgba(255, 255, 255, 0.4);
+                border: 3px solid rgba(255, 255, 255, 0.6);
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: 32px;
+                font-size: 28px;
                 color: white;
                 user-select: none;
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-                opacity: 0.9;
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
             }
 
             .touch-btn:active {
-                background: rgba(255, 255, 255, 0.7);
+                background: rgba(255, 255, 255, 0.6);
                 transform: scale(0.95);
-                box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-                opacity: 1;
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
             }
 
             .touch-controls-row {
                 display: flex;
-                gap: 15px;
+                gap: 20px;
                 justify-content: center;
                 width: 100%;
             }
@@ -645,11 +612,11 @@
 
             .start-content,
             .overlay-content {
-                width: 90%;
+                width: 85%;
                 max-width: 350px;
-                padding: 20px;
-                margin: 0;
-                transform: scale(1);
+                padding: 15px;
+                margin-top: 0;
+                transform: scale(0.9);
             }
 
             .score {
@@ -683,10 +650,7 @@
             }
 
             #playNow, #playAgain {
-                width: 100%;
-                max-width: 250px;
-                margin: 20px auto;
-                padding: 15px 30px;
+                padding: 12px 25px !important;
                 font-size: 1.2em !important;
             }
 
@@ -698,11 +662,6 @@
             .leaderboard-item {
                 padding: 6px 10px !important;
                 font-size: 0.9em !important;
-            }
-
-            #snakeHead, #snakeBody, #foodImg, #boostImg {
-                width: 15px;
-                height: 15px;
             }
         }
     </style>
@@ -775,193 +734,13 @@
     <img id="foodImg" src="Στιγμιότυπο οθόνης 2025-03-21 093812.png" alt="Food">
     <img id="boostImg" src="αρχείο λήψης.jpg" alt="Boost">
     <audio id="hymn" src="imnos_olimpiakou.mp3" loop></audio>
-    <script src="game.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
     <script>
-        // Wait for Firebase to initialize
-        firebase.app().options.databaseURL ? initializeGame() : firebase.app().delete().then(() => {
-            firebase.initializeApp(firebaseConfig);
-            initializeGame();
-        });
-
-        function initializeGame() {
-            // Load all images first
-            const images = {
-                snakeHead: document.getElementById('snakeHead'),
-                snakeBody: document.getElementById('snakeBody'),
-                foodImg: document.getElementById('foodImg'),
-                boostImg: document.getElementById('boostImg')
-            };
-
-            // Function to check if all images are loaded
-            function areImagesLoaded() {
-                return Object.values(images).every(img => {
-                    const isLoaded = img.complete && img.naturalHeight !== 0;
-                    console.log(`Image ${img.id} loaded:`, isLoaded);
-                    return isLoaded;
-                });
-            }
-
-            // Function to force load images
-            function forceLoadImages() {
-                return new Promise((resolve) => {
-                    let loadedCount = 0;
-                    const totalImages = Object.keys(images).length;
-
-                    function onImageLoad() {
-                        loadedCount++;
-                        if (loadedCount === totalImages) {
-                            console.log('All images loaded successfully');
-                            resolve();
-                        }
-                    }
-
-                    Object.values(images).forEach(img => {
-                        if (img.complete) {
-                            onImageLoad();
-                        } else {
-                            img.onload = onImageLoad;
-                            // Force reload the image
-                            img.src = img.src;
-                        }
-                    });
-                });
-            }
-
-            // Function to start the game setup
-            async function setupGame() {
-                console.log('Setting up game...');
-                await forceLoadImages();
-                
-                // Make images available globally
-                window.gameImages = images;
-
-                // Add touch controls detection
-                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-                    const touchControls = document.querySelector('.touch-controls');
-                    const startScreen = document.getElementById('startScreen');
-                    const gameOverlay = document.getElementById('gameOverlay');
-                    
-                    touchControls.style.flexDirection = 'column';
-                    
-                    document.getElementById('playNow').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const playerName = document.getElementById('playerName').value.trim();
-                        if (playerName !== '') {
-                            startScreen.style.display = 'none';
-                            setTimeout(() => {
-                                touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
-                                if (typeof startGame === 'function') {
-                                    console.log('Starting game...');
-                                    startGame();
-                                }
-                            }, 100);
-                        } else {
-                            document.getElementById('nameError').style.display = 'block';
-                        }
-                    });
-
-                    const observer = new MutationObserver((mutations) => {
-                        mutations.forEach((mutation) => {
-                            if (mutation.target === gameOverlay && 
-                                mutation.attributeName === 'style') {
-                                if (gameOverlay.style.display === 'flex') {
-                                    touchControls.style.cssText = 'display: none !important;';
-                                }
-                            }
-                        });
-                    });
-
-                    observer.observe(gameOverlay, { attributes: true });
-
-                    document.getElementById('playAgain').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        gameOverlay.style.display = 'none';
-                        setTimeout(() => {
-                            touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
-                            if (typeof restartGame === 'function') {
-                                console.log('Restarting game...');
-                                restartGame();
-                            }
-                        }, 100);
-                    });
-
-                    touchControls.style.cssText = 'display: none !important;';
-                }
-
-                // Update leaderboard display function
-                function updateLeaderboard(scores, targetElement) {
-                    const leaderboardList = document.getElementById(targetElement);
-                    leaderboardList.innerHTML = '';
-                    
-                    scores.forEach((score, index) => {
-                        const li = document.createElement('li');
-                        li.className = 'leaderboard-item';
-                        li.innerHTML = `
-                            <span>#${index + 1} ${score.playerName}</span>
-                            <span>${score.score}</span>
-                        `;
-                        leaderboardList.appendChild(li);
-                    });
-                }
-
-                // Initialize leaderboard
-                getTopScores((scores) => {
-                    updateLeaderboard(scores, 'leaderboardList');
-                    updateLeaderboard(scores, 'gameOverLeaderboard');
-                });
-
-                // Save score when game ends
-                const gameOverlay = document.getElementById('gameOverlay');
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.target === gameOverlay && 
-                            mutation.attributeName === 'style' &&
-                            gameOverlay.style.display === 'flex') {
-                            const finalScore = parseInt(document.getElementById('finalScore').textContent);
-                            const playerName = document.getElementById('playerName').value;
-                            
-                            saveScore(playerName, finalScore).then(() => {
-                                getTopScores((scores) => {
-                                    updateLeaderboard(scores, 'leaderboardList');
-                                    updateLeaderboard(scores, 'gameOverLeaderboard');
-                                });
-                            });
-                        }
-                    });
-                });
-                observer.observe(gameOverlay, { attributes: true });
-
-                // Update game over handling
-                document.getElementById('playAgain').addEventListener('click', function() {
-                    getTopScores((scores) => {
-                        updateLeaderboard(scores, 'leaderboardList');
-                        updateLeaderboard(scores, 'gameOverLeaderboard');
-                    });
-                });
-
-                // Initialize sound control
-                const soundControl = document.getElementById('soundControl');
-                const hymn = document.getElementById('hymn');
-                
-                soundControl.addEventListener('click', function() {
-                    this.classList.toggle('muted');
-                    if (this.classList.contains('muted')) {
-                        hymn.pause();
-                    } else {
-                        hymn.play();
-                    }
-                });
-            }
-
-            // Start setup process
-            console.log('Initializing game...');
-            setupGame().catch(error => {
-                console.error('Error during game setup:', error);
-            });
+        // Add touch controls detection
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            document.querySelector('.touch-controls').style.display = 'flex';
+            document.querySelector('.touch-controls').style.flexDirection = 'column';
         }
     </script>
+    <script src="game.js"></script>
 </body>
 </html> 
