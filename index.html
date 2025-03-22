@@ -517,103 +517,24 @@
 
         @media (max-width: 768px) {
             .game-container {
-                width: 100vw;
+                width: 100%;
                 height: 100vh;
                 border-radius: 0;
                 border: none;
                 box-shadow: none;
+                position: fixed;
+                top: 0;
+                left: 0;
             }
 
-            .game-header {
-                padding: 15px;
+            .game-canvas-container {
+                height: calc(100vh - 60px); /* Adjust for header height */
             }
 
-            .score {
-                font-size: 1.2em;
-            }
-
-            .sound-control {
-                padding: 6px 12px;
-            }
-
-            .loading-logo {
-                width: 200px;
-                height: 200px;
-                margin: 0 0 30px 0;
-            }
-
-            .loading-bar-container {
-                width: 80%;
-                max-width: 280px;
-                height: 4px;
-                margin: 20px 0;
-            }
-
-            .loading-footer {
-                bottom: 30px;
-                padding: 15px;
-                gap: 20px;
-            }
-
-            .loading-footer span {
-                font-size: 1.2em;
-                letter-spacing: 2px;
-            }
-
-            .start-content {
-                transform: scale(1);
-                padding: 20px;
-                width: 90%;
-                max-width: 400px;
-            }
-
-            .start-content h1 {
-                font-size: 2em;
-                margin-bottom: 20px;
-            }
-
-            #playerName {
-                padding: 12px;
-                font-size: 1em;
-            }
-
-            #playNow {
-                font-size: 1.2em;
-                padding: 15px 30px;
-            }
-
-            .leaderboard {
-                margin-top: 20px;
-                padding: 15px;
-                max-height: 200px;
-            }
-
-            .leaderboard h3 {
-                font-size: 1.2em;
-            }
-
-            .leaderboard-item {
-                padding: 8px 12px;
-                margin: 6px 0;
-                font-size: 0.9em;
-            }
-
-            .overlay-content {
-                width: 90%;
-                padding: 20px;
-            }
-
-            .overlay-content h2 {
-                font-size: 2em;
-            }
-
-            .final-score {
-                font-size: 1.4em;
-            }
-
-            #playAgain {
-                font-size: 1.2em;
-                padding: 12px 30px;
+            #gameCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none; /* Prevent default touch actions */
             }
 
             .touch-controls {
@@ -621,15 +542,21 @@
                 bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                display: flex;
+                display: none; /* Will be shown via JS for touch devices */
                 flex-direction: column;
+                align-items: center;
                 gap: 10px;
-                z-index: 100;
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                border-radius: 15px;
+                backdrop-filter: blur(5px);
+                width: 180px;
             }
 
             .touch-btn {
-                width: 60px;
-                height: 60px;
+                width: 50px;
+                height: 50px;
                 background: rgba(255, 255, 255, 0.2);
                 border: 2px solid rgba(255, 255, 255, 0.3);
                 border-radius: 50%;
@@ -640,6 +567,7 @@
                 color: white;
                 user-select: none;
                 touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
 
             .touch-btn:active {
@@ -649,8 +577,33 @@
 
             .touch-controls-row {
                 display: flex;
-                gap: 10px;
+                gap: 15px;
                 justify-content: center;
+                width: 100%;
+            }
+
+            /* Adjust other mobile elements */
+            .start-content {
+                width: 90%;
+                max-width: 400px;
+                transform: scale(1);
+                padding: 20px;
+            }
+
+            .overlay-content {
+                width: 90%;
+                max-width: 400px;
+                padding: 20px;
+            }
+
+            .score {
+                font-size: 1.2em;
+            }
+
+            .game-header {
+                height: 60px;
+                padding: 10px 20px;
+                align-items: center;
             }
         }
     </style>
