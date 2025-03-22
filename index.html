@@ -423,8 +423,11 @@
             display: block;
             width: 20px;
             height: 20px;
-            position: absolute;
-            visibility: hidden;
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            opacity: 1;
+            pointer-events: none;
         }
 
         .game-overlay {
@@ -574,6 +577,9 @@
                 touch-action: none;
                 margin: 0;
                 max-height: 60vh;
+                background-color: rgba(0, 0, 0, 0.5);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
             }
 
             .touch-controls {
@@ -791,31 +797,64 @@
 
             // Function to check if all images are loaded
             function areImagesLoaded() {
-                return Object.values(images).every(img => img.complete && img.naturalHeight !== 0);
+                return Object.values(images).every(img => {
+                    const isLoaded = img.complete && img.naturalHeight !== 0;
+                    console.log(`Image ${img.id} loaded:`, isLoaded);
+                    return isLoaded;
+                });
+            }
+
+            // Function to force load images
+            function forceLoadImages() {
+                return new Promise((resolve) => {
+                    let loadedCount = 0;
+                    const totalImages = Object.keys(images).length;
+
+                    function onImageLoad() {
+                        loadedCount++;
+                        if (loadedCount === totalImages) {
+                            console.log('All images loaded successfully');
+                            resolve();
+                        }
+                    }
+
+                    Object.values(images).forEach(img => {
+                        if (img.complete) {
+                            onImageLoad();
+                        } else {
+                            img.onload = onImageLoad;
+                            // Force reload the image
+                            img.src = img.src;
+                        }
+                    });
+                });
             }
 
             // Function to start the game setup
-            function setupGame() {
+            async function setupGame() {
+                console.log('Setting up game...');
+                await forceLoadImages();
+                
+                // Make images available globally
+                window.gameImages = images;
+
                 // Add touch controls detection
                 if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
                     const touchControls = document.querySelector('.touch-controls');
                     const startScreen = document.getElementById('startScreen');
                     const gameOverlay = document.getElementById('gameOverlay');
                     
-                    // Set up touch controls
                     touchControls.style.flexDirection = 'column';
                     
-                    // Show controls when game starts
                     document.getElementById('playNow').addEventListener('click', function(e) {
-                        e.preventDefault(); // Prevent any default behavior
+                        e.preventDefault();
                         const playerName = document.getElementById('playerName').value.trim();
                         if (playerName !== '') {
                             startScreen.style.display = 'none';
-                            // Wait for start screen to be hidden before showing controls
                             setTimeout(() => {
                                 touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
-                                // Start the game
                                 if (typeof startGame === 'function') {
+                                    console.log('Starting game...');
                                     startGame();
                                 }
                             }, 100);
@@ -824,7 +863,6 @@
                         }
                     });
 
-                    // Hide controls when game ends
                     const observer = new MutationObserver((mutations) => {
                         mutations.forEach((mutation) => {
                             if (mutation.target === gameOverlay && 
@@ -838,19 +876,18 @@
 
                     observer.observe(gameOverlay, { attributes: true });
 
-                    // Show controls when clicking Play Again
                     document.getElementById('playAgain').addEventListener('click', function(e) {
                         e.preventDefault();
                         gameOverlay.style.display = 'none';
                         setTimeout(() => {
                             touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
                             if (typeof restartGame === 'function') {
+                                console.log('Restarting game...');
                                 restartGame();
                             }
                         }, 100);
                     });
 
-                    // Make sure touch controls are properly hidden initially
                     touchControls.style.cssText = 'display: none !important;';
                 }
 
@@ -919,19 +956,11 @@
                 });
             }
 
-            // Check if images are loaded
-            if (areImagesLoaded()) {
-                setupGame();
-            } else {
-                // Wait for images to load
-                Object.values(images).forEach(img => {
-                    img.onload = () => {
-                        if (areImagesLoaded()) {
-                            setupGame();
-                        }
-                    };
-                });
-            }
+            // Start setup process
+            console.log('Initializing game...');
+            setupGame().catch(error => {
+                console.error('Error during game setup:', error);
+            });
         }
     </script>
 </body>
