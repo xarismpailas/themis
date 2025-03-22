@@ -250,6 +250,8 @@
         .start-screen {
             background: radial-gradient(circle at center, rgba(209, 32, 32, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
             backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
         }
 
         .overlay-content, .start-content {
@@ -480,13 +482,23 @@
         }
 
         .touch-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
+            position: relative;
+            bottom: auto;
+            right: auto;
+            width: 85%;
+            height: auto;
+            display: none !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             gap: 10px;
-            z-index: 100;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
         .touch-btn {
@@ -533,70 +545,68 @@
                 height: calc(100vh - 60px);
                 position: relative;
                 display: flex;
-                flex-direction: row;
-                justify-content: space-between;
+                flex-direction: column;
+                justify-content: flex-start;
                 align-items: center;
-                padding: 5px;
-                gap: 10px;
+                padding: 10px;
+                gap: 15px;
             }
 
             #gameCanvas {
-                width: 50%;
+                width: 85%;
                 height: auto;
                 aspect-ratio: 1;
                 touch-action: none;
                 margin: 0;
-                max-height: 90vh;
-                margin-left: 10px;
+                max-height: 60vh;
             }
 
             .touch-controls {
                 position: relative;
                 bottom: auto;
                 right: auto;
-                width: 45%;
-                height: 60vh;
-                display: none;
+                width: 85%;
+                height: auto;
+                display: none !important;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                gap: 20px;
-                z-index: 1000;
-                background: rgba(0, 0, 0, 0.7);
+                gap: 10px;
+                z-index: 1;
+                background: rgba(0, 0, 0, 0.8);
                 padding: 15px;
                 border-radius: 15px;
                 backdrop-filter: blur(5px);
-                border: 2px solid rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
                 box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-                margin-right: 10px;
             }
 
             .touch-btn {
-                width: 50px;
-                height: 50px;
-                background: rgba(255, 255, 255, 0.4);
-                border: 3px solid rgba(255, 255, 255, 0.6);
+                width: 65px;
+                height: 65px;
+                background: rgba(255, 255, 255, 0.5);
+                border: 3px solid rgba(255, 255, 255, 0.8);
                 border-radius: 50%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: 28px;
+                font-size: 32px;
                 color: white;
                 user-select: none;
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
             }
 
             .touch-btn:active {
-                background: rgba(255, 255, 255, 0.6);
+                background: rgba(255, 255, 255, 0.7);
                 transform: scale(0.95);
-                box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
             }
 
             .touch-controls-row {
                 display: flex;
-                gap: 20px;
+                gap: 15px;
                 justify-content: center;
                 width: 100%;
             }
@@ -734,12 +744,105 @@
     <img id="foodImg" src="Στιγμιότυπο οθόνης 2025-03-21 093812.png" alt="Food">
     <img id="boostImg" src="αρχείο λήψης.jpg" alt="Boost">
     <audio id="hymn" src="imnos_olimpiakou.mp3" loop></audio>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         // Add touch controls detection
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.querySelector('.touch-controls').style.display = 'flex';
-            document.querySelector('.touch-controls').style.flexDirection = 'column';
+            const touchControls = document.querySelector('.touch-controls');
+            const startScreen = document.getElementById('startScreen');
+            const gameOverlay = document.getElementById('gameOverlay');
+            
+            // Set up touch controls
+            touchControls.style.flexDirection = 'column';
+            
+            // Show controls when game starts
+            document.getElementById('playNow').addEventListener('click', function() {
+                const playerName = document.getElementById('playerName').value.trim();
+                if (playerName !== '') {
+                    // Wait for start screen to be hidden before showing controls
+                    setTimeout(() => {
+                        touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
+                    }, 100);
+                }
+            });
+
+            // Hide controls when game ends
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.target === gameOverlay && 
+                        mutation.attributeName === 'style') {
+                        if (gameOverlay.style.display === 'flex') {
+                            touchControls.style.cssText = 'display: none !important;';
+                        }
+                    }
+                });
+            });
+
+            observer.observe(gameOverlay, { attributes: true });
+
+            // Show controls when clicking Play Again
+            document.getElementById('playAgain').addEventListener('click', function() {
+                setTimeout(() => {
+                    touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
+                }, 100);
+            });
         }
+
+        // Update leaderboard display function
+        function updateLeaderboard(scores, targetElement) {
+            const leaderboardList = document.getElementById(targetElement);
+            leaderboardList.innerHTML = '';
+            
+            scores.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <span>#${index + 1} ${score.playerName}</span>
+                    <span>${score.score}</span>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        // Initialize leaderboard
+        getTopScores((scores) => {
+            updateLeaderboard(scores, 'leaderboardList');
+            updateLeaderboard(scores, 'gameOverLeaderboard');
+        });
+
+        // Save score when game ends
+        const gameOverlay = document.getElementById('gameOverlay');
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target === gameOverlay && 
+                    mutation.attributeName === 'style' &&
+                    gameOverlay.style.display === 'flex') {
+                    const finalScore = parseInt(document.getElementById('finalScore').textContent);
+                    const playerName = document.getElementById('playerName').value;
+                    
+                    // Save score to Firebase
+                    saveScore(playerName, finalScore).then(() => {
+                        // Score saved successfully, update leaderboards
+                        getTopScores((scores) => {
+                            updateLeaderboard(scores, 'leaderboardList');
+                            updateLeaderboard(scores, 'gameOverLeaderboard');
+                        });
+                    });
+                }
+            });
+        });
+        observer.observe(gameOverlay, { attributes: true });
+
+        // Update game over handling
+        document.getElementById('playAgain').addEventListener('click', function() {
+            // Game will restart - no need to save score again as it's already saved
+            getTopScores((scores) => {
+                updateLeaderboard(scores, 'leaderboardList');
+                updateLeaderboard(scores, 'gameOverLeaderboard');
+            });
+        });
     </script>
     <script src="game.js"></script>
 </body>
