@@ -23,7 +23,7 @@ let direction = 'right';
 let score = 0;
 let gameLoop = null;
 let gridSize = window.innerWidth <= 768 ? 9 : 20; // 9x9 for mobile, 20x20 for desktop
-let gameSpeed = window.innerWidth <= 768 ? 200 : 100; // Slower speed for mobile
+let gameSpeed = window.innerWidth <= 768 ? 300 : 100; // Even slower speed for mobile
 let playerName = '';
 
 // Boost state
@@ -70,7 +70,7 @@ function updateSoundControlState() {
 function updateGridSize() {
     const isMobile = window.innerWidth <= 768;
     gridSize = isMobile ? 9 : 20;
-    gameSpeed = isMobile ? 200 : 100; // Update speed when screen size changes
+    gameSpeed = isMobile ? 300 : 100; // Update speed when screen size changes
     snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
     food = generateFood();
 }
@@ -138,11 +138,17 @@ document.addEventListener('keydown', (e) => {
 // Generate new food position
 function generateFood() {
     let newPos;
+    const isMobile = window.innerWidth <= 768;
     do {
         newPos = {
             x: Math.floor(Math.random() * gridSize),
             y: Math.floor(Math.random() * gridSize)
         };
+        // For mobile, ensure first food is not too close to starting position
+        if (isMobile && snake.length === 1) {
+            const distanceFromSnake = Math.abs(newPos.x - snake[0].x) + Math.abs(newPos.y - snake[0].y);
+            if (distanceFromSnake < 3) continue; // Try again if too close
+        }
     } while (isPositionOccupied(newPos));
     return newPos;
 }
@@ -220,8 +226,17 @@ function hideLoadingScreen() {
 
 // Initialize and start the game
 function initializeGame() {
-    snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
-    direction = 'right';
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        // For mobile, start in the middle-left, moving right
+        snake = [{x: 1, y: Math.floor(gridSize/2)}];
+        direction = 'right';
+    } else {
+        // For desktop, start in the middle
+        snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
+        direction = 'right';
+    }
+    
     score = 0;
     food = generateFood();
     boost = null;
