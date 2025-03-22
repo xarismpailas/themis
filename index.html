@@ -735,20 +735,44 @@
     <script>
         // Add touch controls detection
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            // Initialize touch controls but don't show them yet
             const touchControls = document.querySelector('.touch-controls');
+            const startScreen = document.getElementById('startScreen');
+            const gameOverlay = document.getElementById('gameOverlay');
+            
+            // Initially hide touch controls
+            touchControls.style.display = 'none';
             touchControls.style.flexDirection = 'column';
             
             // Show controls when game starts
             document.getElementById('playNow').addEventListener('click', function() {
-                if (document.getElementById('playerName').value.trim() !== '') {
-                    touchControls.style.display = 'flex';
+                const playerName = document.getElementById('playerName').value.trim();
+                if (playerName !== '') {
+                    // Wait for start screen to be hidden before showing controls
+                    setTimeout(() => {
+                        touchControls.style.display = 'flex';
+                    }, 100);
                 }
             });
 
             // Hide controls when game ends
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.target === gameOverlay && 
+                        mutation.attributeName === 'style') {
+                        if (gameOverlay.style.display === 'flex') {
+                            touchControls.style.display = 'none';
+                        }
+                    }
+                });
+            });
+
+            observer.observe(gameOverlay, { attributes: true });
+
+            // Show controls when clicking Play Again
             document.getElementById('playAgain').addEventListener('click', function() {
-                touchControls.style.display = 'flex';
+                setTimeout(() => {
+                    touchControls.style.display = 'flex';
+                }, 100);
             });
         }
     </script>
