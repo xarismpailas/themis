@@ -13,6 +13,7 @@ const playerNameInput = document.getElementById('playerName');
 const nameError = document.getElementById('nameError');
 const leaderboardList = document.getElementById('leaderboardList');
 const soundControl = document.getElementById('soundControl');
+const hymn = document.getElementById('hymn');
 
 // Game state
 let snake = [{x: 10, y: 10}]; // Starting position
@@ -29,67 +30,38 @@ let boostActive = false;
 let boostFoodsRemaining = 0;
 let boostMultiplier = 2;
 
-// YouTube player
-let player;
+// Sound state
 let isMuted = localStorage.getItem('snakeGameMuted') === 'true';
 
-// Initialize YouTube player
-function onYouTubeIframeAPIReady() {
-    player = new YT.Player('player', {
-        height: '0',
-        width: '0',
-        videoId: '_JG3zJKL45c',
-        playerVars: {
-            'autoplay': 0,
-            'controls': 0,
-            'loop': 1,
-            'playlist': '_JG3zJKL45c' // needed for looping
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    updateSoundControlState();
-}
-
-function onPlayerStateChange(event) {
-    // When video ends, replay if not muted
-    if (event.data === YT.PlayerState.ENDED && !isMuted) {
-        player.playVideo();
+// Sound control functions
+function startHymn() {
+    if (!isMuted) {
+        hymn.play().catch(error => console.log('Error playing audio:', error));
     }
 }
 
-// Sound control functions
+function stopHymn() {
+    hymn.pause();
+    hymn.currentTime = 0;
+}
+
+function toggleSound() {
+    isMuted = !isMuted;
+    localStorage.setItem('snakeGameMuted', isMuted);
+    updateSoundControlState();
+    
+    if (isMuted) {
+        stopHymn();
+    } else {
+        startHymn();
+    }
+}
+
 function updateSoundControlState() {
     if (isMuted) {
         soundControl.classList.add('muted');
-        if (player && player.pauseVideo) {
-            player.pauseVideo();
-        }
     } else {
         soundControl.classList.remove('muted');
-        if (player && player.playVideo) {
-            player.playVideo();
-        }
-    }
-    localStorage.setItem('snakeGameMuted', isMuted);
-}
-
-// Handle sound control click
-soundControl.addEventListener('click', () => {
-    isMuted = !isMuted;
-    updateSoundControlState();
-});
-
-// Function to start playing the hymn
-function startHymn() {
-    if (!isMuted && player && player.playVideo) {
-        player.seekTo(0);
-        player.playVideo();
     }
 }
 
@@ -542,13 +514,10 @@ function showStartScreen() {
 }
 
 // Event listeners
+soundControl.addEventListener('click', toggleSound);
 document.getElementById('playAgain').addEventListener('click', () => {
     gameOverlay.style.display = 'none';
-    showLoadingScreen();
-    setTimeout(() => {
-        hideLoadingScreen();
-        initializeGame();
-    }, 2000);
+    initializeGame();
 });
 
 document.getElementById('playNow').addEventListener('click', handlePlayNow);
