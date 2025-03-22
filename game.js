@@ -16,13 +16,13 @@ const soundControl = document.getElementById('soundControl');
 const hymn = document.getElementById('hymn');
 
 // Game state
-let snake = [{x: 10, y: 10}]; // Starting position
-let food = {x: 15, y: 15};
+let snake = [{x: 4, y: 4}]; // Starting position for mobile (center of 9x9 grid)
+let food = {x: 7, y: 7};
 let boost = null;
 let direction = 'right';
 let score = 0;
 let gameLoop = null;
-const gridSize = 20;
+let gridSize = window.innerWidth <= 768 ? 9 : 20; // 9x9 for mobile, 20x20 for desktop
 let playerName = '';
 
 // Boost state
@@ -65,15 +65,31 @@ function updateSoundControlState() {
     }
 }
 
+// Function to update grid size based on screen width
+function updateGridSize() {
+    const isMobile = window.innerWidth <= 768;
+    gridSize = isMobile ? 9 : 20;
+    snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
+    food = generateFood();
+}
+
 // Set canvas size
 function resizeCanvas() {
     const container = canvas.parentElement;
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
+    const isMobile = window.innerWidth <= 768;
     
-    // Adjust grid size based on screen size
-    const minDimension = Math.min(canvas.width, canvas.height);
-    const cellSize = minDimension / gridSize;
+    if (isMobile) {
+        // For mobile, make the canvas square and leave space for controls
+        const size = Math.min(container.offsetWidth * 0.7, container.offsetHeight);
+        canvas.width = size;
+        canvas.height = size;
+    } else {
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+    }
+    
+    // Update grid size when resizing
+    updateGridSize();
     
     // Redraw if game is running
     if (gameLoop) {
@@ -81,9 +97,12 @@ function resizeCanvas() {
     }
 }
 
-// Call resize on orientation change
+// Call resize on orientation change and window resize
 window.addEventListener('orientationchange', () => {
-    setTimeout(resizeCanvas, 100); // Small delay to ensure new dimensions are available
+    setTimeout(resizeCanvas, 100);
+});
+window.addEventListener('resize', () => {
+    setTimeout(resizeCanvas, 100);
 });
 
 // Handle keyboard input
