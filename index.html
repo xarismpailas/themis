@@ -252,6 +252,11 @@
             backdrop-filter: blur(5px);
             z-index: 9999;
             display: flex;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
         }
 
         .overlay-content, .start-content {
@@ -269,6 +274,8 @@
             box-shadow: 0 0 40px rgba(209, 32, 32, 0.6);
             border-radius: 20px;
             border: 3px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 10000;
         }
 
         .start-content h1 {
@@ -363,6 +370,11 @@
         }
 
         #playNow {
+            position: relative;
+            z-index: 10001;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
             font-size: 1.5em;
             padding: 20px 50px;
             text-transform: uppercase;
@@ -371,7 +383,6 @@
             color: #d12020;
             border: none;
             border-radius: 10px;
-            cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             margin-top: 30px;
@@ -622,11 +633,11 @@
 
             .start-content,
             .overlay-content {
-                width: 85%;
+                width: 90%;
                 max-width: 350px;
-                padding: 15px;
-                margin-top: 0;
-                transform: scale(0.9);
+                padding: 20px;
+                margin: 0;
+                transform: scale(1);
             }
 
             .score {
@@ -660,7 +671,10 @@
             }
 
             #playNow, #playAgain {
-                padding: 12px 25px !important;
+                width: 100%;
+                max-width: 250px;
+                margin: 20px auto;
+                padding: 15px 30px;
                 font-size: 1.2em !important;
             }
 
@@ -758,13 +772,17 @@
             touchControls.style.flexDirection = 'column';
             
             // Show controls when game starts
-            document.getElementById('playNow').addEventListener('click', function() {
+            document.getElementById('playNow').addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent any default behavior
                 const playerName = document.getElementById('playerName').value.trim();
                 if (playerName !== '') {
+                    startScreen.style.display = 'none';
                     // Wait for start screen to be hidden before showing controls
                     setTimeout(() => {
                         touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
                     }, 100);
+                } else {
+                    document.getElementById('nameError').style.display = 'block';
                 }
             });
 
@@ -783,11 +801,16 @@
             observer.observe(gameOverlay, { attributes: true });
 
             // Show controls when clicking Play Again
-            document.getElementById('playAgain').addEventListener('click', function() {
+            document.getElementById('playAgain').addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent any default behavior
+                gameOverlay.style.display = 'none';
                 setTimeout(() => {
                     touchControls.style.cssText = 'display: flex !important; flex-direction: column;';
                 }, 100);
             });
+
+            // Make sure touch controls are properly hidden initially
+            touchControls.style.cssText = 'display: none !important;';
         }
 
         // Update leaderboard display function
