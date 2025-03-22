@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url('eob3kgsY_400x400.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 650px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 4px solid #d12020;
+            box-shadow: 0 0 30px rgba(209, 32, 32, 0.7),
+                        inset 0 0 50px rgba(209, 32, 32, 0.3);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-header {
+            position: relative;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #d12020 0%, #ff3b3b 100%);
+            z-index: 1;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sound-control {
+            cursor: pointer;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sound-control:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .sound-control i {
+            font-size: 1.2em;
+            color: white;
+        }
+
+        .sound-control.muted i::before {
+            content: '🔇';
+        }
+
+        .sound-control:not(.muted) i::before {
+            content: '🔊';
+        }
+
+        .game-canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 0 0 15px 15px;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .score {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+            animation: scorePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes scorePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .boost-active {
+            color: #ffd700;
+            animation: boostPulse 0.5s infinite alternate;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+
+        @keyframes boostPulse {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            }
+            100% {
+                transform: scale(1.1);
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+            }
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            image-rendering: pixelated;
+        }
+
+        .game-overlay, .start-screen, .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .loading-content {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            background: #000000;
+            overflow: hidden;
+        }
+
+        .loading-logo {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            background: url('old.blue-removebg-preview.png') no-repeat center center;
+            background-size: contain;
+            margin: 0 0 50px 0;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .loading-bar {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            animation: loading 2s linear infinite;
+            border-radius: 10px;
+        }
+
+        .loading-footer {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .loading-footer span {
+            color: #fff;
+            font-size: 1.6em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        @keyframes loading {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.05);
+            }
+        }
+
+        .start-screen {
+            background: radial-gradient(circle at center, rgba(209, 32, 32, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay-content, .start-content {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(209, 32, 32, 0.9);
+            border-radius: 10px;
+            border: 2px solid #ffffff;
+        }
+
+        .start-content {
+            transform: scale(1.2);
+            padding: 40px 60px;
+            background: linear-gradient(135deg, rgba(209, 32, 32, 0.95) 0%, rgba(150, 20, 20, 0.95) 100%);
+            box-shadow: 0 0 40px rgba(209, 32, 32, 0.6);
+            border-radius: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .start-content h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+            letter-spacing: 2px;
+            color: #ffffff;
+            animation: titleGlow 2s infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                             3px 3px 6px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        #playerName {
+            padding: 15px;
+            margin: 25px 0;
+            width: 100%;
+            font-size: 1.2em;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000000;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #playerName:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        #playerName::placeholder {
+            color: #666;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .leaderboard h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.4em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .error-message {
+            color: #ff4444;
+            margin-top: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        #playNow {
+            font-size: 1.5em;
+            padding: 20px 50px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
+            color: #d12020;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+            font-weight: bold;
+        }
+
+        #playNow:hover {
+            background: linear-gradient(90deg, #d12020 0%, #ff3b3b 100%);
+            color: #ffffff;
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(209, 32, 32, 0.4);
+        }
+
+        #playAgain {
+            font-size: 1.4em;
+            padding: 15px 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
+            color: #d12020;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        #playAgain:hover {
+            background: linear-gradient(90deg, #d12020 0%, #ff3b3b 100%);
+            color: #ffffff;
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(209, 32, 32, 0.4);
+        }
+
+        #snakeHead, #snakeBody, #foodImg, #boostImg {
+            display: none;
+        }
+
+        .game-overlay {
+            background: radial-gradient(circle at center, rgba(209, 32, 32, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay-content {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(209, 32, 32, 0.95) 0%, rgba(150, 20, 20, 0.95) 100%);
+            border-radius: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            max-width: 90%;
+            width: 450px;
+            box-shadow: 0 0 40px rgba(209, 32, 32, 0.6);
+        }
+
+        .overlay-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+            letter-spacing: 2px;
+            animation: gameOverGlow 2s infinite alternate;
+        }
+
+        @keyframes gameOverGlow {
+            0% {
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                             3px 3px 6px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        .final-score {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: scoreFade 1s ease-in;
+        }
+
+        @keyframes scoreFade {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .overlay-content .leaderboard {
+            margin: 20px 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .overlay-content .leaderboard h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .touch-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .touch-controls-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .game-header {
+                padding: 15px;
+            }
+
+            .score {
+                font-size: 1.2em;
+            }
+
+            .sound-control {
+                padding: 6px 12px;
+            }
+
+            .loading-logo {
+                width: 200px;
+                height: 200px;
+                margin: 0 0 30px 0;
+            }
+
+            .loading-bar-container {
+                width: 80%;
+                max-width: 280px;
+                height: 4px;
+                margin: 20px 0;
+            }
+
+            .loading-footer {
+                bottom: 30px;
+                padding: 15px;
+                gap: 20px;
+            }
+
+            .loading-footer span {
+                font-size: 1.2em;
+                letter-spacing: 2px;
+            }
+
+            .start-content {
+                transform: scale(1);
+                padding: 20px;
+                width: 90%;
+                max-width: 400px;
+            }
+
+            .start-content h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+
+            #playerName {
+                padding: 12px;
+                font-size: 1em;
+            }
+
+            #playNow {
+                font-size: 1.2em;
+                padding: 15px 30px;
+            }
+
+            .leaderboard {
+                margin-top: 20px;
+                padding: 15px;
+                max-height: 200px;
+            }
+
+            .leaderboard h3 {
+                font-size: 1.2em;
+            }
+
+            .leaderboard-item {
+                padding: 8px 12px;
+                margin: 6px 0;
+                font-size: 0.9em;
+            }
+
+            .overlay-content {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .overlay-content h2 {
+                font-size: 2em;
+            }
+
+            .final-score {
+                font-size: 1.4em;
+            }
+
+            #playAgain {
+                font-size: 1.2em;
+                padding: 12px 30px;
+            }
+
+            .touch-controls {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                z-index: 100;
+            }
+
+            .touch-btn {
+                width: 60px;
+                height: 60px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 24px;
+                color: white;
+                user-select: none;
+                touch-action: manipulation;
+            }
+
+            .touch-btn:active {
+                background: rgba(255, 255, 255, 0.3);
+                transform: scale(0.95);
+            }
+
+            .touch-controls-row {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="sound-control" id="soundControl">
+                <i></i>
+            </div>
+        </div>
+        <div class="game-canvas-container">
+            <canvas id="gameCanvas"></canvas>
+            <div class="touch-controls">
+                <div class="touch-controls-row">
+                    <button class="touch-btn" id="upBtn">⬆️</button>
+                </div>
+                <div class="touch-controls-row">
+                    <button class="touch-btn" id="leftBtn">⬅️</button>
+                    <button class="touch-btn" id="rightBtn">➡️</button>
+                </div>
+                <div class="touch-controls-row">
+                    <button class="touch-btn" id="downBtn">⬇️</button>
+                </div>
+            </div>
+            <div class="start-screen" id="startScreen">
+                <div class="start-content">
+                    <h1>Snake Game</h1>
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                    <div class="error-message" id="nameError">Please enter your name to play!</div>
+                    <button id="playNow">Play Now</button>
+                    <div class="leaderboard">
+                        <h3>Top Players</h3>
+                        <ul class="leaderboard-list" id="leaderboardList">
+                            <!-- Leaderboard items will be added here dynamically -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="game-overlay" id="gameOverlay">
+                <div class="overlay-content">
+                    <h2>Game Over!</h2>
+                    <p class="final-score">Your score: <span id="finalScore">0</span></p>
+                    <div class="leaderboard">
+                        <h3>Top Players</h3>
+                        <ul class="leaderboard-list" id="gameOverLeaderboard">
+                            <!-- Leaderboard items will be added here dynamically -->
+                        </ul>
+                    </div>
+                    <button id="playAgain">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-logo"></div>
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <div class="loading-footer">
+                <span>Old Holborn</span>
+                <span>Snake Game</span>
+            </div>
+        </div>
+    </div>
+    <img id="snakeHead" src="Στιγμιότυπο οθόνης 2025-03-21 093020.png" alt="Snake Head">
+    <img id="snakeBody" src="Στιγμιότυπο οθόνης 2025-03-21 093020.png" alt="Snake Body">
+    <img id="foodImg" src="Στιγμιότυπο οθόνης 2025-03-21 093812.png" alt="Food">
+    <img id="boostImg" src="αρχείο λήψης.jpg" alt="Boost">
+    <div id="youtubePlayer" style="display: none;">
+        <div id="player"></div>
+    </div>
+    <script>
+        // Add touch controls detection
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            document.querySelector('.touch-controls').style.display = 'flex';
+            document.querySelector('.touch-controls').style.flexDirection = 'column';
+        }
+    </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="game.js"></script>
+</body>
+</html> 
