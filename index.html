@@ -744,6 +744,9 @@
     <img id="foodImg" src="Στιγμιότυπο οθόνης 2025-03-21 093812.png" alt="Food">
     <img id="boostImg" src="αρχείο λήψης.jpg" alt="Boost">
     <audio id="hymn" src="imnos_olimpiakou.mp3" loop></audio>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         // Add touch controls detection
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -786,6 +789,60 @@
                 }, 100);
             });
         }
+
+        // Update leaderboard display function
+        function updateLeaderboard(scores, targetElement) {
+            const leaderboardList = document.getElementById(targetElement);
+            leaderboardList.innerHTML = '';
+            
+            scores.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <span>#${index + 1} ${score.playerName}</span>
+                    <span>${score.score}</span>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        // Initialize leaderboard
+        getTopScores((scores) => {
+            updateLeaderboard(scores, 'leaderboardList');
+            updateLeaderboard(scores, 'gameOverLeaderboard');
+        });
+
+        // Save score when game ends
+        const gameOverlay = document.getElementById('gameOverlay');
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target === gameOverlay && 
+                    mutation.attributeName === 'style' &&
+                    gameOverlay.style.display === 'flex') {
+                    const finalScore = parseInt(document.getElementById('finalScore').textContent);
+                    const playerName = document.getElementById('playerName').value;
+                    
+                    // Save score to Firebase
+                    saveScore(playerName, finalScore).then(() => {
+                        // Score saved successfully, update leaderboards
+                        getTopScores((scores) => {
+                            updateLeaderboard(scores, 'leaderboardList');
+                            updateLeaderboard(scores, 'gameOverLeaderboard');
+                        });
+                    });
+                }
+            });
+        });
+        observer.observe(gameOverlay, { attributes: true });
+
+        // Update game over handling
+        document.getElementById('playAgain').addEventListener('click', function() {
+            // Game will restart - no need to save score again as it's already saved
+            getTopScores((scores) => {
+                updateLeaderboard(scores, 'leaderboardList');
+                updateLeaderboard(scores, 'gameOverLeaderboard');
+            });
+        });
     </script>
     <script src="game.js"></script>
 </body>
