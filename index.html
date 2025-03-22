@@ -735,8 +735,21 @@
     <script>
         // Add touch controls detection
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.querySelector('.touch-controls').style.display = 'flex';
-            document.querySelector('.touch-controls').style.flexDirection = 'column';
+            // Initialize touch controls but don't show them yet
+            const touchControls = document.querySelector('.touch-controls');
+            touchControls.style.flexDirection = 'column';
+            
+            // Show controls when game starts
+            document.getElementById('playNow').addEventListener('click', function() {
+                if (document.getElementById('playerName').value.trim() !== '') {
+                    touchControls.style.display = 'flex';
+                }
+            });
+
+            // Hide controls when game ends
+            document.getElementById('playAgain').addEventListener('click', function() {
+                touchControls.style.display = 'flex';
+            });
         }
     </script>
     <script src="game.js"></script>
