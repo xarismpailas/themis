@@ -23,6 +23,7 @@ let direction = 'right';
 let score = 0;
 let gameLoop = null;
 let gridSize = window.innerWidth <= 768 ? 9 : 20; // 9x9 for mobile, 20x20 for desktop
+let gameSpeed = window.innerWidth <= 768 ? 200 : 100; // Slower speed for mobile
 let playerName = '';
 
 // Boost state
@@ -69,6 +70,7 @@ function updateSoundControlState() {
 function updateGridSize() {
     const isMobile = window.innerWidth <= 768;
     gridSize = isMobile ? 9 : 20;
+    gameSpeed = isMobile ? 200 : 100; // Update speed when screen size changes
     snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
     food = generateFood();
 }
@@ -218,7 +220,7 @@ function hideLoadingScreen() {
 
 // Initialize and start the game
 function initializeGame() {
-    snake = [{x: 10, y: 10}];
+    snake = [{x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)}];
     direction = 'right';
     score = 0;
     food = generateFood();
@@ -230,7 +232,7 @@ function initializeGame() {
     document.querySelector('.score').classList.remove('boost-active');
     
     if (gameLoop) clearInterval(gameLoop);
-    gameLoop = setInterval(update, 100);
+    gameLoop = setInterval(update, gameSpeed);
     
     // Draw initial state
     draw();
