@@ -67,11 +67,24 @@ function updateSoundControlState() {
 
 // Set canvas size
 function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    const container = canvas.parentElement;
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+    
+    // Adjust grid size based on screen size
+    const minDimension = Math.min(canvas.width, canvas.height);
+    const cellSize = minDimension / gridSize;
+    
+    // Redraw if game is running
+    if (gameLoop) {
+        draw();
+    }
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+
+// Call resize on orientation change
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100); // Small delay to ensure new dimensions are available
+});
 
 // Handle keyboard input
 const keys = {
@@ -521,6 +534,60 @@ document.getElementById('playAgain').addEventListener('click', () => {
 });
 
 document.getElementById('playNow').addEventListener('click', handlePlayNow);
+
+// Touch controls
+const touchControls = document.querySelector('.touch-controls');
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+
+// Check if device supports touch
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+// Show touch controls only on touch devices
+if (isTouchDevice) {
+    touchControls.style.display = 'flex';
+}
+
+// Touch control event handlers
+function handleTouchStart(newDirection) {
+    const opposites = {
+        'up': 'down',
+        'down': 'up',
+        'left': 'right',
+        'right': 'left'
+    };
+    if (opposites[newDirection] !== direction) {
+        direction = newDirection;
+    }
+}
+
+// Add touch event listeners
+upBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleTouchStart('up');
+});
+
+downBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleTouchStart('down');
+});
+
+leftBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleTouchStart('left');
+});
+
+rightBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleTouchStart('right');
+});
+
+// Prevent default touch actions on game canvas
+canvas.addEventListener('touchstart', (e) => e.preventDefault());
+canvas.addEventListener('touchmove', (e) => e.preventDefault());
+canvas.addEventListener('touchend', (e) => e.preventDefault());
 
 // Initialize game when the page loads
 window.onload = initGame; 
